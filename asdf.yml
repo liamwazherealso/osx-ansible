@@ -1,0 +1,53 @@
+---
+- hosts: localhost
+  tasks:
+
+  - name: Install packages with brew
+    homebrew:
+      name: 
+        - coreutils
+        - curl
+        - git
+        - openssl
+        - readline
+        - sqlite3
+        - xz
+        - zlib
+        - tcl-tk
+      state: latest
+    become: no
+
+  - name: Clone asdf
+    git:
+      repo: 'https://github.com/asdf-vm/asdf.git'
+      dest: '~/.asdf'
+      version: 'v0.12.0'
+      clone: yes
+      update: no
+    become: no
+
+  - name: Add asdf.sh to zsh
+    lineinfile:
+      path: '~/.zshrc'
+      line: '. "$HOME/.asdf/asdf.sh"'
+      insertafter: EOF
+    become: no
+
+  - name: Install asdf plugin for Python
+    command: asdf plugin-add python
+    args:
+      creates: '~/.asdf/plugins/python'
+    become: no
+
+  - name: Install and set Python 3.10.10 as global
+    shell: |
+      . "$HOME/.asdf/asdf.sh"
+      asdf install python 3.10.10
+      asdf global python 3.10.10
+    become: no
+
+  handlers:
+    - name: update asdf
+      shell: |
+        . "$HOME/.asdf/asdf.sh"
+        . "$HOME/.asdf/completions/asdf.bash"
